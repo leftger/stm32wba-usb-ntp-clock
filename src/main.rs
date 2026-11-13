@@ -26,7 +26,7 @@ use embassy_time::{Duration, Timer};
 use embassy_usb::class::cdc_ncm::device::embassy_net::{
     Device, Runner as NcmRunner, State as NetState,
 };
-use embassy_usb::class::cdc_ncm::device::{CdcNcmClass, State as NcmState};
+use embassy_usb::class::cdc_ncm::device::{CdcNcmClass, Config as NcmConfig, State as NcmState};
 use embassy_usb::{Builder as UsbBuilder, UsbDevice, UsbDeviceSpeed};
 
 use embedded_graphics::pixelcolor::IntoStorage;
@@ -239,7 +239,11 @@ async fn main(spawner: Spawner) {
     let host_mac = [0x88, 0x88, 0x88, 0x88, 0x88, 0x88];
 
     static NCM_STATE: StaticCell<NcmState> = StaticCell::new();
-    let class = CdcNcmClass::new(&mut builder, NCM_STATE.init(NcmState::new()), host_mac, 512);
+    let class = CdcNcmClass::new(
+        &mut builder,
+        NCM_STATE.init(NcmState::new()),
+        NcmConfig::new(host_mac),
+    );
 
     let usb = builder.build();
     spawner.spawn(usb_task(usb).unwrap());

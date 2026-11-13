@@ -16,7 +16,7 @@ embassy-sync = { git = "https://github.com/embassy-rs/embassy", branch = "main",
 embassy-usb = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = ["defmt"] }
 embassy-net = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = ["defmt", "tcp", "udp", "dhcpv4", "dns", "medium-ethernet", "ipv4"] }
 
-embedded-gui = { path = "../../my-repos/embedded-gui/crates/embedded-gui", default-features = false, features = ["libm", "rich-widgets", "embedded-graphics"] }
+embedded-gui = { git = "https://github.com/leftger/embedded-gui", default-features = false, features = ["libm", "rich-widgets", "embedded-graphics"] }
 
 embedded-hal = "1.0.0"
 embedded-hal-bus = "0.3.0"
@@ -50,12 +50,3 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
-[patch."https://github.com/embassy-rs/embassy"]
-embassy-stm32 = { path = "../../embassy-project/embassy/embassy-stm32" }
-embassy-executor = { path = "../../embassy-project/embassy/embassy-executor" }
-embassy-time = { path = "../../embassy-project/embassy/embassy-time" }
-embassy-futures = { path = "../../embassy-project/embassy/embassy-futures" }
-embassy-sync = { path = "../../embassy-project/embassy/embassy-sync" }
-embassy-usb = { path = "../../embassy-project/embassy/embassy-usb" }
-embassy-net = { path = "../../embassy-project/embassy/embassy-net" }
-embassy-usb-synopsys-otg = { path = "../../embassy-project/embassy/embassy-usb-synopsys-otg" }
