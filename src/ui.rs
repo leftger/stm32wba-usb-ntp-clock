@@ -262,7 +262,41 @@ pub fn build_clock_ui(gui: &mut Gui) -> ClockUi {
     }
 }
 
+/// Longest text remembered per widget; longer text is never cached (always applied).
+const CACHE_TEXT_MAX: usize = 64;
+const CACHE_UNSET: u8 = u8::MAX;
+
+/// Copy of the last text applied to each widget, indexed by `WidgetId`.
+///
+/// `embedded-gui` marks a widget dirty on every `set_text`, even when the text is
+/// unchanged, which makes the UI loop redraw and re-flush every label on every tick.
+/// The `TX_*` cells are also rewritten in place, so the text the GUI holds can't be
+/// compared against; we keep our own copy instead.
+struct TextCache(UnsafeCell<[([u8; CACHE_TEXT_MAX], u8); GUI_NODES]>);
+// Only touched from the single UI task.
+unsafe impl Sync for TextCache {}
+
+static TEXT_CACHE: TextCache =
+    TextCache(UnsafeCell::new([([0; CACHE_TEXT_MAX], CACHE_UNSET); GUI_NODES]));
+
+/// Set a label's text, skipping the update (and the redraw it triggers) if the text
+/// is identical to what was last applied to this widget.
 pub fn set_text(gui: &mut Gui, id: WidgetId, text: &'static str) {
+    let bytes = text.as_bytes();
+    let cacheable = bytes.len() <= CACHE_TEXT_MAX;
+    // Only call from the single UI task.
+    let cache = unsafe { &mut *TEXT_CACHE.0.get() };
+
+    if cacheable {
+        if let Some((buf, len)) = cache.get_mut(id.raw() as usize) {
+            if *len != CACHE_UNSET && &buf[..*len as usize] == bytes {
+                return;
+            }
+            buf[..bytes.len()].copy_from_slice(bytes);
+            *len = bytes.len() as u8;
+        }
+    }
+
     let _ = gui.set_widget_property(id, PropertyKey::Text, PropertyValue::Str(text));
 }
 
